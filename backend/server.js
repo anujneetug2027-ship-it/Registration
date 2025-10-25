@@ -28,15 +28,13 @@ async function sendEmail(email, code) {
             verification_code: code
         }
     };
-
     const res = await fetch(url, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${EMAIL_PRIVATE_KEY}` // ✅ REQUIRED
-        },
-        body: JSON.stringify(body)
-    });
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body)
+});
 
     const data = await res.text();
     console.log("EmailJS response:", data);
