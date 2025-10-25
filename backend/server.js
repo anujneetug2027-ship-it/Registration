@@ -4,7 +4,7 @@ const cors = require('cors');
 const bcrypt = require('bcrypt');
 const User = require('./models/User');
 const db = require('./db'); // connect DB
-const fetch = require('node-fetch'); // for EmailJS API
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args)); // for EmailJS API
 
 const app = express();
 app.use(cors());
