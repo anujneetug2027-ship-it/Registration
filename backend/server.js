@@ -13,8 +13,8 @@ app.use(bodyParser.json());
 // EmailJS config
 const EMAIL_SERVICE = "service_h2opout";
 const EMAIL_TEMPLATE = "template_vepoizn";
-const EMAIL_PUBLIC_KEY = "zv857xFJb-NSg3N5b";
-const EMAIL_PRIVATE_KEY = "GpeQ0roOQth99PwCBMJYD";
+const EMAIL_PUBLIC_KEY = "nrRHkmrcj0okGAbI2";
+const EMAIL_PRIVATE_KEY = "Sbl6IqF6DjELH6KuGucIu";
 
 // Helper: send verification email
 async function sendEmail(email, code) {
