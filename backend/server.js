@@ -22,13 +22,25 @@ async function sendEmail(email, code) {
     const body = {
         service_id: EMAIL_SERVICE,
         template_id: EMAIL_TEMPLATE,
-        user_id: EMAIL_PUBLIC_KEY, // required even with private key
+        user_id: EMAIL_PUBLIC_KEY,      // public key
+        accessToken: EMAIL_PRIVATE_KEY, // private key
         template_params: {
-            user_email: email,
-            verification_code: code
+            email: email,       // ✅ matches {{email}}
+            passcode: code,     // ✅ matches {{passcode}}
+            time: new Date().toLocaleString() // optional, matches {{time}}
         }
     };
 
+    const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+    });
+
+    const data = await res.text();
+    console.log("EmailJS response:", data);
+    return res.ok;
+            }
     const res = await fetch(url, {
         method: "POST",
         headers: {
