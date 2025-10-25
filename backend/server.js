@@ -19,24 +19,29 @@ const EMAIL_PRIVATE_KEY = "Sbl6IqF6DjELH6KuGucIu";
 // Helper: send verification email
 async function sendEmail(email, code) {
     const url = "https://api.emailjs.com/api/v1.0/email/send";
-        const body = {
-                service_id: EMAIL_SERVICE,
-                        template_id: EMAIL_TEMPLATE,
-                                user_id: EMAIL_PUBLIC_KEY,
-                                        template_params: {
-                                                    user_email: email,
-                                                                verification_code: code
-                                                                        }
-                                                                            };
+    const body = {
+        service_id: EMAIL_SERVICE,
+        template_id: EMAIL_TEMPLATE,
+        user_id: EMAIL_PUBLIC_KEY, // still required
+        template_params: {
+            user_email: email,
+            verification_code: code
+        }
+    };
 
-                                                                                const res = await fetch(url, {
-                                                                                        method: "POST",
-                                                                                                headers: { "Content-Type": "application/json" },
-                                                                                                        body: JSON.stringify(body)
-                                                                                                            });
-                                                                                                                return res.ok;
-                                                                                                                }
+    const res = await fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${EMAIL_PRIVATE_KEY}` // ✅ REQUIRED
+        },
+        body: JSON.stringify(body)
+    });
 
+    const data = await res.text();
+    console.log("EmailJS response:", data);
+    return res.ok;
+}
                                                                                                                 // Register
                                                                                                                 app.post('/register', async (req, res) => {
                                                                                                                     const { name, email, password } = req.body;
