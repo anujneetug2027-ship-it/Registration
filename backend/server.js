@@ -1,123 +1,109 @@
-// server.js
+require('dotenv').config();
 const express = require('express');
+const mongoose = require('mongoose');
+const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
-const cors = require('cors');
-const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 const User = require('./models/User');
-const db = require('./db'); // connect DB
-const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+const Referral = require('./models/Referral');
 
 const app = express();
-app.use(cors());
+app.use(cookieParser(process.env.COOKIE_SECRET));
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-// EmailJS config
-const EMAIL_SERVICE = "service_h2opout";
-const EMAIL_TEMPLATE = "template_vepoizn";
-const EMAIL_PUBLIC_KEY = "nrRHkmrcj0okGAbI2";
-const EMAIL_PRIVATE_KEY = "Sbl6IqF6DjELH6KuGucIu";
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(()=>console.log('MongoDB connected'))
+  .catch(err=>console.log(err));
 
-// Helper: send verification email
-async function sendEmail(email, code) {
-    try {
-        const url = "https://api.emailjs.com/api/v1.0/email/send";
-        const body = {
-            service_id: EMAIL_SERVICE,
-            template_id: EMAIL_TEMPLATE,
-            user_id: EMAIL_PUBLIC_KEY,       // public key
-            accessToken: EMAIL_PRIVATE_KEY,  // private key for strict mode
-            template_params: {
-                email: email,               // matches {{email}}
-                passcode: code,             // matches {{passcode}}
-                time: new Date().toLocaleString() // matches {{time}}
-            }
-        };
+// --- EMAIL SETUP ---
+const transporter = nodemailer.createTransport({
+  service: process.env.EMAIL_SERVICE,
+  auth: {
+    user: process.env.EMAIL_PUBLIC_KEY,
+    pass: process.env.EMAIL_PRIVATE_KEY
+  }
+});
 
-        const res = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body)
-        });
-
-        const data = await res.text();
-        console.log("EmailJS response:", data);
-
-        if (!res.ok) {
-            throw new Error(`Failed to send email: ${data}`);
-        }
-
-        return true;
-    } catch (err) {
-        console.error("sendEmail error:", err.message);
-        return false;
-    }
+// --- Helper Functions ---
+function generateReferralCode() {
+  return crypto.randomBytes(3).toString('hex').toUpperCase(); // 6-char code
 }
 
-// Register route
-app.post('/register', async (req, res) => {
-    const { name, email, password } = req.body;
+function generateOTP() {
+  return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
+}
 
-    try {
-        const existing = await User.findOne({ email });
-        if (existing) return res.status(400).send("Email already registered");
+// --- Routes ---
 
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-
-        const user = new User({
-            name,
-            email,
-            password: hashedPassword,
-            verificationCode
-        });
-
-        await user.save();
-
-        const emailSent = await sendEmail(email, verificationCode);
-        if (!emailSent) return res.status(500).send("Failed to send verification email");
-
-        res.send("Registered! Verification email sent.");
-    } catch (err) {
-        res.status(500).send("Server error: " + err.message);
-    }
+// Signup page link with optional ref
+app.get('/signup', (req, res) => {
+  const refCode = req.query.ref;
+  if (refCode) {
+    res.cookie('ref', refCode, { maxAge: 7*24*60*60*1000 }); // 7 days
+  }
+  res.sendFile(__dirname + '/../frontend/signup.html');
 });
 
-// Verify email route
-app.post('/verify', async (req, res) => {
-    const { email, code } = req.body;
+// Send OTP
+app.post('/send-otp', async (req, res) => {
+  const { name, email } = req.body;
+  const existing = await User.findOne({ email });
+  if (existing) return res.json({ success: false, msg: "Email already exists" });
 
-    try {
-        const user = await User.findOne({ email });
-        if (!user) return res.status(400).send("User not found");
+  const otp = generateOTP();
+  const otpExpires = new Date(Date.now() + 5*60*1000); // 5 min expiry
 
-        if (user.verificationCode === code) {
-            user.verified = true;
-            await user.save();
-            res.send("Email verified! You can now login.");
-        } else {
-            res.status(400).send("Invalid verification code");
-        }
-    } catch (err) {
-        res.status(500).send("Server error: " + err.message);
-    }
+  const referralCode = generateReferralCode();
+  let referredBy = null;
+
+  const refCode = req.cookies.ref;
+  if (refCode) {
+    const referrer = await User.findOne({ referralCode: refCode });
+    if (referrer) referredBy = referrer._id;
+  }
+
+  const newUser = await User.create({ name, email, referralCode, referredBy, otp, otpExpires });
+
+  // Send Email
+  await transporter.sendMail({
+    from: process.env.EMAIL_PUBLIC_KEY,
+    to: email,
+    subject: 'Your OTP Code',
+    html: `<p>Hi ${name},</p>
+           <p>Your OTP is <b>${otp}</b>. It expires in 5 minutes.</p>`
+  });
+
+  res.json({ success: true, msg: "OTP sent" });
 });
 
-// Login route
-app.post('/login', async (req, res) => {
-    const { email, password } = req.body;
+// Verify OTP
+app.post('/verify-otp', async (req, res) => {
+  const { email, otp } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) return res.json({ success: false, msg: "User not found" });
+  if (user.otp !== otp || user.otpExpires < new Date()) {
+    return res.json({ success: false, msg: "Invalid or expired OTP" });
+  }
 
-    try {
-        const user = await User.findOne({ email });
-        if (!user) return res.status(400).send("User not found");
-        if (!user.verified) return res.status(400).send("Email not verified");
+  // OTP correct, clear OTP fields
+  user.otp = null;
+  user.otpExpires = null;
+  await user.save();
 
-        const valid = await bcrypt.compare(password, user.password);
-        if (!valid) return res.status(400).send("Wrong password");
+  // Handle referral reward
+  if (user.referredBy) {
+    await User.findByIdAndUpdate(user.referredBy, { $inc: { rewardBalance: 50 } });
+    await Referral.create({
+      referrerId: user.referredBy,
+      refereeId: user._id,
+      status: 'completed',
+      rewardGranted: true
+    });
+  }
 
-        res.send(`Welcome ${user.name}!`);
-    } catch (err) {
-        res.status(500).send("Server error: " + err.message);
-    }
+  res.json({ success: true, msg: "Signup complete", referralCode: user.referralCode, rewardBalance: user.rewardBalance });
 });
 
-app.listen(3000, () => console.log('Server running on http://localhost:3000'));
+app.listen(process.env.PORT, ()=>console.log(`Server running on port ${process.env.PORT}`));
