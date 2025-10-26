@@ -1,312 +1,95 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Ambikashelf — Register / Login</title>
+  <title>Refer & Earn</title>
   <style>
-    /* Minimal professional styling */
-    :root{
-      --bg:#f5f7fb;
-      --card:#ffffff;
-      --accent:#0b67ff;
-      --muted:#6b7280;
-      --danger:#e02424;
-      --success:#16a34a;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    }
-    body{ margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(180deg,#f7f9ff,#f5f7fb); color:#111827; }
-    .wrap{ width:420px; max-width:95%; }
-    .card{ background:var(--card); border-radius:12px; box-shadow:0 8px 30px rgba(16,24,40,0.08); padding:28px; }
-    h1{ margin:0 0 8px; font-size:20px; }
-    p.lead{ margin:0 0 18px; color:var(--muted); font-size:14px; }
-    label{ display:block; font-size:13px; color:#374151; margin-bottom:6px; margin-top:12px; }
-    input[type="text"],input[type="email"],input[type="password"],input[type="number"]{
-      width:100%; padding:10px 12px; border-radius:8px; border:1px solid #e6e9ef; outline:none; font-size:14px;
-    }
-    input:focus{ box-shadow:0 0 0 4px rgba(11,103,255,0.06); border-color:var(--accent); }
-    .row{ display:flex; gap:10px; }
-    .btn{ display:inline-block; margin-top:18px; padding:11px 16px; border-radius:10px; cursor:pointer; border:0; font-weight:600; }
-    .btn-primary{ background:var(--accent); color:white; }
-    .btn-ghost{ background:transparent; border:1px solid #e6e9ef; color:#111827; }
-    .muted{ color:var(--muted); font-size:13px; margin-top:10px; }
-    .small-link{ color:var(--accent); cursor:pointer; text-decoration:underline; font-weight:600; }
-    .message{ margin-top:12px; font-size:14px; padding:10px; border-radius:8px; }
-    .err{ background:#fff0f0; color:var(--danger); border:1px solid rgba(224,36,36,0.08); }
-    .ok{ background:#f0fff6; color:var(--success); border:1px solid rgba(16,185,129,0.08); }
-    .top-right{ text-align:right; color:var(--muted); font-size:13px; margin-bottom:6px; }
-    .center{ text-align:center; }
-    .tiny{ font-size:12px; color:var(--muted); margin-top:8px; }
-    .login-box{ margin-top:14px; padding:12px; border-radius:8px; border:1px dashed #e6e9ef; background:#fbfcff; }
-    .hidden{ display:none; }
-    .otp-input{ width:100%; padding:12px; font-size:16px; letter-spacing:4px; text-align:center; }
-    .footer{ margin-top:14px; font-size:12px; color:var(--muted); text-align:center; }
-    .branding{ font-weight:700; color:var(--accent); }
+    section { display: none; }
+    section.active { display: block; }
+    input { margin: 5px 0; padding: 5px; }
+    button { padding: 5px 10px; }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card" id="card">
-      <div id="view-register">
-        <div class="top-right">Ambikashelf</div>
-        <h1>Create your Ambikashelf account</h1>
-        <p class="lead">Quick registration — we'll send an OTP to verify your email.</p>
 
-        <form id="registerForm">
-          <label for="name">Full name</label>
-          <input id="name" type="text" placeholder="Your full name" required />
+<h1>Refer & Earn System</h1>
 
-          <label for="email">Email</label>
-          <input id="email" type="email" placeholder="you@example.com" required />
+<!-- SIGNUP SECTION -->
+<section id="signupSection" class="active">
+  <h2>Signup</h2>
+  <form id="signupForm">
+    <input type="text" name="name" placeholder="Name" required><br>
+    <input type="email" name="email" placeholder="Email" required><br>
+    <button type="submit">Send OTP</button>
+  </form>
+</section>
 
-          <label for="password">Password</label>
-          <input id="password" type="password" placeholder="Create a secure password" required />
+<!-- OTP VERIFICATION SECTION -->
+<section id="verifySection">
+  <h2>Enter OTP</h2>
+  <form id="otpForm">
+    <input type="number" name="otp" placeholder="OTP" required><br>
+    <button type="submit">Verify OTP</button>
+  </form>
+</section>
 
-          <div style="display:flex; align-items:center; justify-content:space-between; margin-top:6px;">
-            <div class="tiny">Already have an account? <span id="openLogin" class="small-link">Log in</span></div>
-            <button type="submit" class="btn btn-primary" id="registerBtn">Register</button>
-          </div>
-          <div id="regMessage" class="message hidden"></div>
-        </form>
-
-        <div id="loginBox" class="login-box hidden">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <strong>Login</strong>
-            <span id="closeLogin" style="font-size:13px; color:var(--muted); cursor:pointer;">Close</span>
-          </div>
-          <form id="loginForm" style="margin-top:10px;">
-            <label for="loginEmail">Email</label>
-            <input id="loginEmail" type="email" required />
-            <label for="loginPassword">Password</label>
-            <input id="loginPassword" type="password" required />
-            <div style="display:flex; justify-content:flex-end;">
-              <button type="submit" class="btn btn-ghost" style="margin-top:12px;">Login</button>
-            </div>
-            <div id="loginMessage" class="message hidden"></div>
-          </form>
-        </div>
-      </div>
-
-      <div id="view-verify" class="hidden">
-        <div class="top-right"><span class="branding">Ambikashelf</span> — Verify Email</div>
-        <h1>Enter the OTP</h1>
-        <p class="lead">We sent a verification code to <strong id="sentToEmail"></strong>. Enter it below.</p>
-
-        <form id="verifyForm">
-          <label for="otp">Verification code</label>
-          <input id="otp" class="otp-input" type="text" inputmode="numeric" maxlength="6" placeholder="123456" required />
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <button type="button" id="resendBtn" class="btn btn-ghost">Resend</button>
-            <button type="submit" class="btn btn-primary">Verify Now</button>
-          </div>
-          <div id="verifyMessage" class="message hidden"></div>
-        </form>
-
-        <div class="tiny center" style="margin-top:10px;">Wrong email? <span id="backToRegister" class="small-link">Go back</span></div>
-      </div>
-
-      <div id="view-success" class="hidden center">
-        <h1>All set ✅</h1>
-        <p class="lead">Your account is verified. You can now log in.</p>
-        <div style="display:flex; justify-content:center;">
-          <button id="gotoLoginFromSuccess" class="btn btn-primary">Go to Login</button>
-        </div>
-      </div>
-
-      <div class="footer">Built for Ambikashelf — <span style="font-weight:700">Secure</span> & simple</div>
-    </div>
-  </div>
+<!-- DASHBOARD SECTION -->
+<section id="dashboardSection">
+  <h2>Dashboard</h2>
+  <p>Your Referral Link:</p>
+  <input type="text" id="refLink" readonly><br>
+  <p>Reward Balance: <span id="rewardBalance"></span></p>
+</section>
 
 <script>
-/*
-  Single-file frontend logic.
-  - Replace API_BASE if backend URL changes.
-  - Your backend endpoints expected:
-      POST /register   { name, email, password } -> text response (success or error)
-      POST /verify     { email, code } -> text response
-      POST /login      { email, password } -> text response
-  - Backend base provided by you:
-*/
-const API_BASE = "https://registration-1-hb4p.onrender.com"; // <<-- your live backend
+// Utility to show/hide sections
+function showSection(sectionId) {
+  document.querySelectorAll('section').forEach(sec => sec.classList.remove('active'));
+  document.getElementById(sectionId).classList.add('active');
+}
 
-// Elements
-const registerForm = document.getElementById('registerForm');
-const regMessage = document.getElementById('regMessage');
-const registerBtn = document.getElementById('registerBtn');
+let signupEmail = '';
 
-const verifyForm = document.getElementById('verifyForm');
-const verifyMessage = document.getElementById('verifyMessage');
-const otpInput = document.getElementById('otp');
-const sentToEmail = document.getElementById('sentToEmail');
-const resendBtn = document.getElementById('resendBtn');
-
-const viewRegister = document.getElementById('view-register');
-const viewVerify = document.getElementById('view-verify');
-const viewSuccess = document.getElementById('view-success');
-
-const openLogin = document.getElementById('openLogin');
-const loginBox = document.getElementById('loginBox');
-const closeLogin = document.getElementById('closeLogin');
-const loginForm = document.getElementById('loginForm');
-const loginMessage = document.getElementById('loginMessage');
-const gotoLoginFromSuccess = document.getElementById('gotoLoginFromSuccess');
-const backToRegister = document.getElementById('backToRegister');
-
-let currentEmail = ""; // will hold email between steps
-
-// Utilities
-function show(el){ el.classList.remove('hidden'); }
-function hide(el){ el.classList.add('hidden'); }
-function setMsg(el, text, type='err'){ el.className = 'message ' + (type==='ok' ? 'ok' : 'err'); el.textContent = text; show(el); }
-function clearMsg(el){ el.className = 'message hidden'; el.textContent = ''; }
-
-// Toggle views
-function goToVerify(email){ currentEmail = email; sentToEmail.textContent = email; hide(viewRegister); hide(viewSuccess); clearMsg(regMessage); show(viewVerify); otpInput.focus(); }
-function goToRegister(){ hide(viewVerify); hide(viewSuccess); show(viewRegister); clearMsg(verifyMessage); }
-
-// Register handler
-registerForm.addEventListener('submit', async (e) => {
+// --- SIGNUP ---
+document.getElementById('signupForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  clearMsg(regMessage);
-  const name = document.getElementById('name').value.trim();
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value;
+  const formData = new FormData(e.target);
+  const data = Object.fromEntries(formData.entries());
+  signupEmail = data.email;
 
-  if(!name || !email || !password){
-    setMsg(regMessage, "All fields are required.");
-    return;
-  }
-  if(password.length < 6){ setMsg(regMessage, "Password must be at least 6 characters."); return; }
-
-  registerBtn.disabled = true;
-  registerBtn.textContent = "Registering...";
-
-  try {
-    const res = await fetch(API_BASE + '/register', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ name, email, password })
-    });
-    const text = await res.text();
-
-    if(!res.ok){
-      setMsg(regMessage, text || "Registration failed. Try again.");
-      registerBtn.disabled = false;
-      registerBtn.textContent = "Register";
-      return;
-    }
-
-    // success -> open verify view
-    setMsg(regMessage, text || "Verification email sent. Check your inbox.", 'ok');
-    // small delay then switch to verify
-    setTimeout(()=> goToVerify(email), 800);
-
-  } catch(err){
-    setMsg(regMessage, "Network error. Try again.");
-    console.error(err);
-  } finally {
-    registerBtn.disabled = false;
-    registerBtn.textContent = "Register";
-  }
+  const res = await fetch('/send-otp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  const result = await res.json();
+  alert(result.msg);
+  if(result.success) showSection('verifySection');
 });
 
-// Resend - just re-call /register with same data? Safer: call backend's register again to re-send code.
-// We'll ask user to re-register or click resend which requests backend to send again (backend must support it).
-resendBtn.addEventListener('click', async () => {
-  clearMsg(verifyMessage);
-  if(!currentEmail){ setMsg(verifyMessage, "No email stored. Go back and register again."); return; }
-  resendBtn.disabled = true;
-  resendBtn.textContent = "Resending...";
-  try {
-    // We will call a lightweight resend endpoint if exists: /resend OR reuse /register with minimal data
-    // Here we call /register with same email and a placeholder name/password to trigger resend if backend allows.
-    // Better approach: backend should have a dedicated /resend that accepts { email }.
-    const res = await fetch(API_BASE + '/resend', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ email: currentEmail })
-    });
-
-    // If backend doesn't support /resend, fallback: inform user to re-register.
-    if(res.status === 404){
-      setMsg(verifyMessage, "Resend not supported by server. Please go back and register again.");
-    } else {
-      const text = await res.text();
-      if(!res.ok) setMsg(verifyMessage, text || "Could not resend. Try registering again.");
-      else setMsg(verifyMessage, text || "Verification code resent.", 'ok');
-    }
-  } catch(err){
-    setMsg(verifyMessage, "Network error while resending.");
-  } finally {
-    resendBtn.disabled = false;
-    resendBtn.textContent = "Resend";
-  }
-});
-
-// Verify handler
-verifyForm.addEventListener('submit', async (e) => {
+// --- VERIFY OTP ---
+document.getElementById('otpForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  clearMsg(verifyMessage);
-  const code = otpInput.value.trim();
-  if(!code || code.length < 4){ setMsg(verifyMessage, "Enter the verification code."); return; }
+  const otp = e.target.otp.value;
 
-  verifyMessage.textContent = '';
-  try {
-    const res = await fetch(API_BASE + '/verify', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ email: currentEmail, code })
-    });
-    const text = await res.text();
-    if(!res.ok){
-      setMsg(verifyMessage, text || "Verification failed.");
-      return;
-    }
-    setMsg(verifyMessage, text || "Verified successfully.", 'ok');
-    // show success view
-    setTimeout(()=>{ hide(viewVerify); show(viewSuccess); clearMsg(verifyMessage); }, 700);
-  } catch(err){
-    setMsg(verifyMessage, "Network error. Try again.");
-    console.error(err);
-  }
-});
+  const res = await fetch('/verify-otp', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: signupEmail, otp })
+  });
+  const result = await res.json();
+  alert(result.msg);
+  if(result.success) {
+    // Save referral code and reward balance
+    localStorage.setItem('referralCode', result.referralCode);
+    localStorage.setItem('rewardBalance', result.rewardBalance);
+    showSection('dashboardSection');
 
-// Login UI toggles
-openLogin.addEventListener('click', ()=> show(loginBox));
-closeLogin.addEventListener('click', ()=> hide(loginBox));
-backToRegister.addEventListener('click', ()=> goToRegister());
-gotoLoginFromSuccess.addEventListener('click', ()=> {
-  hide(viewSuccess);
-  show(viewRegister);
-  show(loginBox);
-});
-
-// Login handler
-loginForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  clearMsg(loginMessage);
-  const email = document.getElementById('loginEmail').value.trim();
-  const password = document.getElementById('loginPassword').value;
-  if(!email || !password){ setMsg(loginMessage, "Both fields are required."); return; }
-
-  try {
-    const res = await fetch(API_BASE + '/login', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ email, password })
-    });
-    const text = await res.text();
-    if(!res.ok){
-      setMsg(loginMessage, text || "Login failed.");
-      return;
-    }
-    setMsg(loginMessage, text || "Logged in!", 'ok');
-    // Optionally store session token if backend provides JWT; here backend returns welcome text
-  } catch(err){
-    setMsg(loginMessage, "Network error. Try again.");
-    console.error(err);
+    // Update dashboard fields
+    document.getElementById('refLink').value = window.location.origin + '/signup?ref=' + result.referralCode;
+    document.getElementById('rewardBalance').innerText = result.rewardBalance;
   }
 });
 </script>
+
 </body>
-            </html>
+                         </html>
